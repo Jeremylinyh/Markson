@@ -1,0 +1,70 @@
+{
+  "name": "markson",
+  "displayName": "Markson",
+  "description": "Inspect JSON strings as Markdown in a side panel for faster editing and iteration.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.115.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [],
+    "configuration": {
+      "title": "Markson",
+      "properties": {
+        "markson.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable the Markson preview extension."
+        },
+        "markson.triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["#","\\$","\\\\n"],
+          "description": "Define which string patterns activate the Markdown preview."
+        },
+        "markson.suffixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["json","jsonc"],
+          "description": "File suffixes the extension listens to for Markdown preview activation."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.115.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "@vscode/markdown-it-katex": "^1.1.2",
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.45",
+    "markdown-it": "^14.1.1"
+  }
+}
