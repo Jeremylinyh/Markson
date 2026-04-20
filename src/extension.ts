@@ -4,10 +4,27 @@ import * as parser from './parser/parser.js';
 
 export function activate(context: vscode.ExtensionContext) {
     let currentPanel: vscode.WebviewPanel | undefined = undefined;
+    let currentMarkdownEditor: vscode.TextEditor | undefined = undefined;
+    let currentRawString: string = '';
     const extensionUri = context.extensionUri;
 
+    // Register the toggle command
+    const toggleCommand = vscode.commands.registerCommand('markson.toggleRenderMode', async () => {
+        const config = vscode.workspace.getConfiguration('markson');
+        const isRendered = config.get<boolean>('rendered', true);
+        
+        try {
+            await config.update('rendered', !isRendered, vscode.ConfigurationTarget.Global);
+            const newMode = !isRendered ? 'rendered (webview)' : 'markdown (.md file)';
+            vscode.window.showInformationMessage(`Markson mode switched to: ${newMode}`);
+        } catch (error) {
+            vscode.window.showErrorMessage('Failed to toggle render mode');
+        }
+    });
+    context.subscriptions.push(toggleCommand);
+
     // Listen for cursor movement/clicks
-    const selectionCheck = vscode.window.onDidChangeTextEditorSelection(event => {
+    const selectionCheck = vscode.window.onDidChangeTextEditorSelection(async event => {
         const editor = event.textEditor;
         if (!editor || event.selections.length === 0) {return;}
 
@@ -79,38 +96,75 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 });
                 
-                //console.log(rawString);
-
-                if (currentPanel) {
-                    currentPanel.webview.html = getWebviewContent(rawString, extensionUri, currentPanel.webview);
-                    currentPanel.reveal(vscode.ViewColumn.Beside,true);
+                // Store the current raw string for toggle command
+                currentRawString = rawString;
+                
+                const isRendered = config.get<boolean>('rendered', true);
+                
+                if (isRendered) {
+                    // Rendered mode: show webview
+                    
+                    if (currentPanel) {
+                        currentPanel.webview.html = getWebviewContent(rawString, extensionUri, currentPanel.webview);
+                        currentPanel.reveal(vscode.ViewColumn.Beside, true);
+                    } else {
+                        currentPanel = vscode.window.createWebviewPanel(
+                            'markdown',
+                            'Markdown Preview',
+                            { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
+                            { 
+                                enableScripts: true,
+                                localResourceRoots: [
+                                    vscode.Uri.joinPath(extensionUri, 'src'),
+                                    vscode.Uri.joinPath(extensionUri, 'node_modules', 'katex', 'dist')
+                                ]
+                            }
+                        );
+                        currentPanel.webview.html = getWebviewContent(rawString, extensionUri, currentPanel.webview);
+                        currentPanel.onDidDispose(() => {
+                            currentPanel = undefined;
+                        }, null, context.subscriptions);
+                    }
                 } else {
-                    currentPanel = vscode.window.createWebviewPanel(
-                        'markdown',
-                        'Markdown Preview',
-                        { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
-                        { 
-                            enableScripts: true,
-                            localResourceRoots: [
-                                vscode.Uri.joinPath(extensionUri, 'src'),
-                                vscode.Uri.joinPath(extensionUri, 'node_modules', 'katex', 'dist')
-                            ]
-                        }
-                    );
-
-                    currentPanel.webview.html = getWebviewContent(rawString, extensionUri, currentPanel.webview);
-                    //console.log(currentPanel.webview.html);
-                    // Reset panel when user closes it
-                    currentPanel.onDidDispose(() => {
+                    // Markdown mode: open .md file with the string content
+                    if (currentPanel) {
+                        currentPanel.dispose();
                         currentPanel = undefined;
-                    }, null, context.subscriptions);
+                    }
+                    
+                    await openMarkdownFile(rawString, context);
                 }
+                
                 break; // Found our string, stop looping
             }
         }
     });
 
     context.subscriptions.push(selectionCheck);
+}
+
+// Helper to open markdown string in a .md file
+async function openMarkdownFile(markdownText: string, context: vscode.ExtensionContext) {
+    try {
+        const fileName = `markson_${Date.now()}.md`;
+        const tempDir = context.globalStorageUri;
+        
+        // Ensure temp directory exists
+        await vscode.workspace.fs.createDirectory(tempDir);
+        
+        const fileUri = vscode.Uri.joinPath(tempDir, fileName);
+        const encoder = new TextEncoder();
+        const data = encoder.encode(markdownText);
+        
+        // Write the markdown string to the file
+        await vscode.workspace.fs.writeFile(fileUri, data);
+        
+        // Open the file in the editor
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to open markdown file: ${error}`);
+    }
 }
 
 // Helper to generate the Webview HTML and render the Markdown

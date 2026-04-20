@@ -19,7 +19,12 @@
   },
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "command": "markson.toggleRenderMode",
+        "title": "Markson: Toggle between Rendered and Markdown modes"
+      }
+    ],
     "configuration": {
       "title": "Markson",
       "properties": {
@@ -27,6 +32,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable or disable the Markson preview extension."
+        },
+        "markson.rendered": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, open Markdown as rendered preview. If false, open as .md file."
         },
         "markson.triggers": {
           "type": "array",
