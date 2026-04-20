@@ -33,7 +33,11 @@
           "items": {
             "type": "string"
           },
-          "default": ["#","\\$","\\\\n"],
+          "default": [
+            "#",
+            "\\$",
+            "\\\\n"
+          ],
           "description": "Define which string patterns activate the Markdown preview."
         },
         "markson.suffixes": {
@@ -41,7 +45,10 @@
           "items": {
             "type": "string"
           },
-          "default": ["json","jsonc"],
+          "default": [
+            "json",
+            "jsonc"
+          ],
           "description": "File suffixes the extension listens to for Markdown preview activation."
         }
       }
@@ -58,7 +65,7 @@
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "^22.19.17",
     "@types/vscode": "^1.115.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",

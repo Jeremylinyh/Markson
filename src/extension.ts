@@ -60,9 +60,11 @@ export function activate(context: vscode.ExtensionContext) {
                 // Test the raw string against the user's triggers
                 if (!dynamicRegex.test(rawString)) {
                     if (currentPanel) {
-                        currentPanel.dispose();
+                        // currentPanel.dispose();
                     }
-                    return; // Not "useful" enough to render
+                    else {
+                        return;
+                    }
                 }
 
                 rawString = rawString.replace(/\\(n|t|r|"|'|\\)/g, (fullMatch, char) => {
