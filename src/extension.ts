@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
             const newMode = !isRendered ? 'rendered (webview)' : 'markdown (.md file)';
             
             // If we have current content, switch the view
-            if (currentRawString) {
+            if (currentRawString || true) {
                 if (isRendered) {
                     // Was in rendered mode, now switch to markdown
                     if (currentPanel) {
@@ -85,22 +85,48 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(toggleCommand);
     
-    // Listen for markdown file changes to sync back to source
-    // const fileChangeListener = vscode.workspace.onDidChangeTextDocument(async (event) => {
-    //     const metadata = tempFileMetadata.get(event.document.uri.fsPath);
-    //     if (metadata && event.document.isDirty) {
-    //         // Markdown file was edited, sync back to source JSON
-    //         const updatedContent = event.document.getText();
-    //         await updateSourceFile(metadata, updatedContent, context);
+    // Helper function to sync markdown changes back to JSON ---
+    const syncMarkdownToSource = async () => {
+        if (!currentMarkdownEditor || !currentEditorPath) {
+            return;
+        }
+
+        const updatedMarkdown = currentMarkdownEditor.document.getText();
+        
+        // JSON.stringify adds surrounding quotes and escapes everything correctly
+        const escapedContent = JSON.stringify(updatedMarkdown);
+        currentRawString = escapedContent.slice(1, -1); // Remove the surrounding quotes for storage
+        const sourceUri = vscode.Uri.file(currentEditorPath);
+        const edit = new vscode.WorkspaceEdit();
+        
+        const range = new vscode.Range(
+            new vscode.Position(currentEditorLineNum, currentEditorStartChar),
+            new vscode.Position(currentEditorLineNum, currentEditorEndChar)
+        );
+
+        edit.replace(sourceUri, range, escapedContent);
+        const success = await vscode.workspace.applyEdit(edit);
+        
+        if (success) {
+            // Update the end character position in case the length changed, 
+            // ensuring subsequent saves don't corrupt the JSON.
+            currentEditorEndChar = currentEditorStartChar + escapedContent.length;
             
-    //         // Update webview if it's open
-    //         if (currentPanel) {
-    //             currentPanel.webview.html = getWebviewContent(updatedContent, extensionUri, currentPanel.webview);
-    //             currentRawString = updatedContent;
-    //         }
-    //     }
-    // });
-    // context.subscriptions.push(fileChangeListener);
+            // Save the underlying JSON file
+            const sourceDoc = await vscode.workspace.openTextDocument(sourceUri);
+            await sourceDoc.save();
+        } else {
+            vscode.window.showErrorMessage('Markson: Failed to sync changes back to source file.');
+        }
+    };
+
+    // Listen for Ctrl+S (Save) on the temporary markdown file ---
+    const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
+        if (currentMarkdownEditor && document.uri.fsPath === currentMarkdownEditor.document.uri.fsPath) {
+            await syncMarkdownToSource();
+        }
+    });
+    context.subscriptions.push(saveListener);
 
     // Listen for cursor movement/clicks
     const selectionCheck = vscode.window.onDidChangeTextEditorSelection(async event => {
@@ -146,13 +172,8 @@ export function activate(context: vscode.ExtensionContext) {
 
                 const dynamicRegex = new RegExp(triggers.join('|'));
 
-                if (!dynamicRegex.test(rawString)) {
-                    if (currentPanel) {
-                        // currentPanel.dispose();
-                    }
-                    else {
-                        return;
-                    }
+                if (!dynamicRegex.test(rawString) && !currentPanel) {
+                    return;
                 }
 
                 rawString = rawString.replace(/\\(n|t|r|"|'|\\)/g, (fullMatch, char) => {
