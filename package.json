@@ -2,7 +2,7 @@
   "name": "markson",
   "displayName": "Markson",
   "description": "Inspect JSON strings as Markdown in a side panel for faster editing and iteration.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "JeremyLin",
   "engines": {
     "vscode": "^1.115.0"

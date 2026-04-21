@@ -46,11 +46,11 @@ None so far. If you find one, or have any suggestions or contributions, please o
 
 ## Release Notes
 
-### 1.0.0
+### 0.0.1
 
 Initial release.
 
-### 1.0.1
+### 0.0.2
 
 Added ability to edit the JSON string in a `.md` file with a render toggle.
 
