@@ -1,46 +1,56 @@
-# Markson
+# Markson: LLM & JSON Markdown Editor
 
-Markdown in JSON—exactly what it sounds like.
+Markson is exactly what it sounds like: straightforward, with no hidden behavior. Just Markdown inside JSON. Markdown inside JSON is barely human-readable. Whether you are inspecting LLM API responses, debugging multi-agent tool calls, or dealing with escaped text blobs, Markson makes it painless.
 
-Markdown in JSON is barely human readable. With Markson, simply click strings in JSON or other file types you specify. If selected strings are Markdown/LaTeX, a preview will open for you.
+Simply click on any string inside a JSON file (or other specified formats). If the string contains escaped Markdown or LaTeX, Markson instantly opens it in a clean preview or an editable tab. (Whichever you choose with a simple toggle in command pallet)
 
-Works offline.
-
+Works entirely offline, requires no API keys, and is completely unopinionated about your file structure.
 ## Features
 
-- Click a JSON string containing Markdown → opens a live preview
-- Updates as you type
-- Closes automatically when there’s nothing worth previewing 
+* Live Preview: Click a JSON string containing `\n`, LaTeX or escaped Markdown → instantly opens a beautifully rendered preview.
 
-![Demo](Demos/Demo.gif)
+* Two-Way Editing: Toggle to edit mode! Open the string as a `.md` file, edit the text normally, and Markson will automatically escape and save your changes right back into the raw JSON file. A quick toggle brings you back to a rendered preview in one keystroke.
 
->  Tip: You can define exactly which patterns trigger the preview in settings.
+* Zero Lock-in: You do not need to format your JSON in any specific, proprietary manner. It just works on raw data.
+
+![Video showcasing feature overview](Demos/Demo.gif)
+
+> Tip: You can define exactly which string patterns trigger the preview in your VS Code settings.
 
 ## Why use this?
 
-Working with JSON often means dealing with:
+Working with complex JSON payloads often means dealing with:
 
-- API responses
-- AI / LLM input and output
-- Escaped text blobs inside code
+* AI & LLM API outputs (OpenAI structured outputs, Anthropic, Gemini, if it is API it probably outputs JSON).
 
-Instead of copy pasting or building temporary UI just to inspect content, Markson lets you read and iterate directly in your editor, on the exact string in the exact file, verbatim without hidden behavior.
+* Multi-Agent Systems and complex custom orchestration setup passing deeply nested JSON state trees back and forth.
 
+* Escaped text blobs buried inside code or configuration files.
+
+Instead of copying and pasting into web formatters, or building a temporary UI just to read an AI's response, Markson lets you inspect and iterate directly in your editor. View the raw schema exactly as your application sees it, but read and edit the Markdown inside it without going cross-eyed.
 ## Extension Settings
 
 This extension contributes the following settings:
 
-* `Markson.enable`: Enable/disable this extension.
-* `Markson.triggers`: Define which patterns activate the preview
-* `Markson.suffixes`: File types the extension listens to
+* Markson.enable: Enable/disable this extension.
+
+* Markson.triggers: Define which regex patterns or keys activate the preview.
+
+* Markson.suffixes: File types the extension listens to.
+
+* Markson.rendered: If `true`, opens the Markdown as a read-only rendered preview. If `false`, opens as a fully editable `.md` file that syncs back to your JSON.
 
 ## Known Issues
 
-None so far. If you find one, please open an issue.
+None so far. If you find one, or have any suggestions or contributions, please open an issue on GitHub.
 
 ## Release Notes
 
 ### 1.0.0
 
 Initial release.
+
+### 1.0.1
+
+Added ability to edit the JSON string in a `.md` file with a render toggle.
 

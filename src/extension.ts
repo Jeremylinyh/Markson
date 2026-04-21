@@ -95,7 +95,17 @@ export function activate(context: vscode.ExtensionContext) {
         
         // JSON.stringify adds surrounding quotes and escapes everything correctly
         const escapedContent = JSON.stringify(updatedMarkdown);
-        currentRawString = escapedContent.slice(1, -1); // Remove the surrounding quotes for storage
+        currentRawString = escapedContent.slice(1, -1).replace(/\\(n|t|r|"|'|\\)/g, (fullMatch, char) => {
+                    switch (char) {
+                        case 'n': return '\n';
+                        case 't': return '\t';
+                        case 'r': return '\r';
+                        case '"': return '"';
+                        case "'": return "'";
+                        case '\\': return '\\';
+                        default: return fullMatch;
+                    }
+                }); 
         const sourceUri = vscode.Uri.file(currentEditorPath);
         const edit = new vscode.WorkspaceEdit();
         
